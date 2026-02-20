@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Ad Analytics Dashboard </title>
+    <title>Pro Ad Analytics Dashboard - Glassmorphism</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -111,11 +111,10 @@
         }
         html[dir="rtl"] .toast { border-left: none; border-right: 4px solid #ea580c; }
 
-        /* Print Styles - تصميم احترافي للطباعة العادية */
+        /* Print Styles */
         @media print {
-            @page { size: A3 portrait; margin: 10mm; } /* استخدام A3 لضمان مساحة واسعة تناسب الداشبورد */
+            @page { size: A3 portrait; margin: 10mm; } 
             
-            /* إجبار المتصفح على طباعة الألوان الداكنة */
             body, html { 
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
@@ -125,12 +124,10 @@
                 overflow: visible !important;
             }
             
-            /* إخفاء القوائم والتأثيرات المعقدة */
-            .no-print, #sidebar, #header, .animate-blob, #toast-container { 
+            .no-print, #sidebar, #header, .animate-blob, #toast-container, #mobile-overlay { 
                 display: none !important; 
             }
             
-            /* إعادة ضبط الحاويات لتناسب الورق */
             #app-container, main, #content-area { 
                 height: auto !important; 
                 overflow: visible !important; 
@@ -146,7 +143,6 @@
                 padding: 0 !important; 
             }
             
-            /* تحويل البطاقات الزجاجية إلى بطاقات صلبة وأنيقة للطباعة */
             .glass-card { 
                 break-inside: avoid !important; 
                 page-break-inside: avoid !important;
@@ -164,7 +160,6 @@
             .text-orange-400 { color: #fb923c !important; }
             .bg-orange-500 { background-color: #ea580c !important; }
             
-            /* إيقاف الحركات في الطباعة */
             * { animation: none !important; transition: none !important; }
         }
     </style>
@@ -172,28 +167,31 @@
 <body class="bg-[#050505] text-gray-100 selection:bg-orange-500/40 overflow-hidden font-sans">
 
     <!-- الحاوية الرئيسية والتأثيرات -->
-    <div id="app-container" dir="ltr" class="flex h-screen relative overflow-hidden">
+    <div id="app-container" dir="ltr" class="flex h-screen relative overflow-hidden w-full">
         
         <!-- Animated Background Orbs -->
         <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-orange-600/10 mix-blend-screen filter blur-[100px] animate-blob z-0 pointer-events-none"></div>
         <div class="absolute top-[20%] right-[-20%] w-[40vw] h-[40vw] rounded-full bg-blue-600/5 mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000 z-0 pointer-events-none"></div>
         <div class="absolute bottom-[-20%] left-[20%] w-[40vw] h-[40vw] rounded-full bg-purple-600/5 mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000 z-0 pointer-events-none"></div>
 
+        <!-- Mobile Overlay -->
+        <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden md:hidden transition-opacity"></div>
+
         <!-- القائمة الجانبية -->
-        <aside id="sidebar" class="no-print w-64 bg-black/30 backdrop-blur-3xl border-white/5 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.8)] transition-all">
+        <aside id="sidebar" class="no-print w-64 bg-black/90 md:bg-black/30 backdrop-blur-3xl border-white/5 flex flex-col h-full z-40 shadow-[4px_0_24px_rgba(0,0,0,0.8)] transition-transform duration-300 fixed inset-y-0 md:relative md:translate-x-0">
             <!-- سيتم حقن المحتوى بواسطة JS -->
         </aside>
 
         <!-- المحتوى الرئيسي -->
-        <main class="flex-1 flex flex-col h-full overflow-hidden print-full-width relative z-10">
+        <main class="flex-1 flex flex-col h-full overflow-hidden print-full-width relative z-10 w-full">
             <!-- شريط التحكم (Header) -->
-            <header id="header" class="no-print bg-black/20 backdrop-blur-2xl px-8 py-5 border-b border-white/5 flex flex-wrap gap-4 justify-between items-center z-20">
+            <header id="header" class="no-print bg-black/20 backdrop-blur-2xl px-4 md:px-8 py-4 border-b border-white/5 flex flex-wrap gap-4 justify-between items-center z-20 w-full">
                 <!-- سيتم حقن المحتوى بواسطة JS -->
             </header>
 
             <!-- منطقة العرض / التعديل -->
-            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 print-full-width relative scroll-smooth">
-                <div id="main-content" class="max-w-7xl mx-auto space-y-6 print-full-width opacity-0 animate-slide-up-fade">
+            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 print-full-width relative scroll-smooth w-full">
+                <div id="main-content" class="max-w-7xl mx-auto space-y-4 md:space-y-6 print-full-width opacity-0 animate-slide-up-fade pb-10">
                     <!-- سيتم حقن المحتوى بواسطة JS -->
                 </div>
             </div>
@@ -283,7 +281,8 @@
             isEditing: false,
             clientsList: JSON.parse(localStorage.getItem('adAnalyticsClientsList') || '[]'),
             activeClientId: null,
-            campaignData: {}
+            campaignData: {},
+            isSidebarOpen: false
         };
 
         if(!state.activeClientId) {
@@ -300,12 +299,11 @@
         }
 
         // --- Animations ---
-        // 1. Toast Notification System
         window.showToast = function(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `<i data-lucide="check-circle" class="text-orange-500 w-5 h-5"></i> <span>${message}</span>`;
+            toast.innerHTML = `<i data-lucide="check-circle" class="text-orange-500 w-5 h-5 flex-shrink-0"></i> <span>${message}</span>`;
             container.appendChild(toast);
             lucide.createIcons();
             
@@ -315,14 +313,13 @@
             }, 3000);
         };
 
-        // 2. Number Counter Animation
         function animateNumbers() {
             const counters = document.querySelectorAll('.animate-number');
             counters.forEach(counter => {
                 const target = +counter.getAttribute('data-value');
-                const duration = 1500; // 1.5 seconds
+                const duration = 1500; 
                 const start = 0;
-                const increment = target / (duration / 16); // 60fps
+                const increment = target / (duration / 16); 
                 
                 let current = start;
                 const isFloat = counter.getAttribute('data-float') === 'true';
@@ -340,16 +337,12 @@
             });
         }
 
-        // 3. SVG Animate Progress Ring
         function animateProgressRings() {
             const rings = document.querySelectorAll('.progress-ring-circle');
             rings.forEach(ring => {
                 const targetOffset = ring.getAttribute('data-target-offset');
-                // Start empty
                 const circumference = ring.getAttribute('stroke-dasharray').split(' ')[0];
                 ring.style.strokeDashoffset = circumference;
-                
-                // Animate to target
                 setTimeout(() => {
                     ring.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
                     ring.style.strokeDashoffset = targetOffset;
@@ -359,10 +352,10 @@
 
         function generateBarChartHTML(dataList) {
             const maxVal = Math.max(...dataList.map(d => Number(d.value) || 0), 1);
-            let html = `<div class="flex items-end justify-between h-48 w-full px-2 gap-4">`;
+            let html = `<div class="flex items-end justify-between h-48 w-full px-1 gap-2 md:gap-4">`;
             dataList.forEach((item, index) => {
                 const heightPct = ((Number(item.value)||0) / maxVal) * 100;
-                const delay = index * 0.15; // Staggered animation
+                const delay = index * 0.15;
                 html += `
                 <div class="flex flex-col items-center flex-1 group">
                     <div class="w-full relative flex justify-center items-end h-full">
@@ -371,7 +364,7 @@
                         </div>
                         <div class="w-full max-w-[48px] rounded-t-lg shadow-[0_0_20px_rgba(0,0,0,0.3)] chart-bar animate-grow-up ${item.color}" style="height: ${heightPct}%; animation-delay: ${delay}s"></div>
                     </div>
-                    <span class="text-xs text-gray-400 mt-3 truncate w-full text-center font-medium">${item.label}</span>
+                    <span class="text-[10px] md:text-xs text-gray-400 mt-3 truncate w-full text-center font-medium">${item.label}</span>
                 </div>`;
             });
             html += `</div>`;
@@ -390,8 +383,17 @@
         }
 
         // --- UI Actions ---
+        window.toggleSidebar = function() {
+            state.isSidebarOpen = !state.isSidebarOpen;
+            renderSidebar();
+        };
+
         window.setPlatform = function(platformId) {
             state.activePlatform = platformId;
+            // إغلاق القائمة في الموبايل بعد الاختيار
+            if (window.innerWidth < 768) {
+                state.isSidebarOpen = false;
+            }
             renderApp();
         };
 
@@ -466,7 +468,6 @@
             renderHeader();
             lucide.createIcons();
             
-            // إجبار الأرقام والدوائر على الاكتمال فوراً للطباعة
             document.querySelectorAll('.animate-number').forEach(el => {
                 const val = el.getAttribute('data-value');
                 const isFloat = el.getAttribute('data-float') === 'true';
@@ -487,7 +488,6 @@
             const t = TRANSLATIONS[state.lang];
             showToast(state.lang === 'ar' ? "تجهيز التقرير للطباعة..." : "Preparing report for print...");
 
-            // إعطاء المتصفح نصف ثانية لتطبيق التعديلات على الـ DOM ثم استدعاء الطباعة الطبيعية
             setTimeout(() => {
                 window.print();
             }, 600);
@@ -513,15 +513,27 @@
                 </li>`;
             }).join('');
 
-            document.getElementById('sidebar').className = `no-print w-64 bg-black/40 backdrop-blur-3xl ${isRTL ? 'border-l' : 'border-r'} border-white/5 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.8)] transition-all`;
+            // Mobile toggle classes
+            const baseClasses = `no-print w-64 bg-black/90 md:bg-black/30 backdrop-blur-3xl border-white/5 flex flex-col h-full z-40 shadow-[4px_0_24px_rgba(0,0,0,0.8)] transition-transform duration-300 fixed inset-y-0 md:relative md:translate-x-0`;
+            const langClasses = isRTL ? 'right-0 border-l' : 'left-0 border-r';
+            const openClasses = state.isSidebarOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full');
+
+            document.getElementById('sidebar').className = `${baseClasses} ${langClasses} ${openClasses}`;
+
+            // Overlay Handling
+            const overlay = document.getElementById('mobile-overlay');
+            if (state.isSidebarOpen) overlay.classList.remove('hidden');
+            else overlay.classList.add('hidden');
 
             document.getElementById('sidebar').innerHTML = `
-                <div class="p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+                <div class="p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent flex justify-between items-center">
                     <h1 class="text-xl font-extrabold text-white flex items-center gap-2">
                         <div class="p-1.5 bg-orange-500 rounded-lg shadow-[0_0_15px_rgba(234,88,12,0.5)]"><i data-lucide="bar-chart-2" class="text-white w-5 h-5"></i></div>
                         <span>${t.appTitle}</span>
                     </h1>
-                    <p class="text-xs text-gray-400 mt-2 font-medium">${t.appDesc}</p>
+                    <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
                 </div>
                 <div class="p-4 flex-1 overflow-y-auto">
                     <p class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest pl-2">${t.platformsTitle}</p>
@@ -557,52 +569,51 @@
             clientOptions += `</optgroup>`;
 
             const editBtnHTML = `
-                <button onclick="toggleEditMode()" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all text-sm font-medium backdrop-blur-sm shadow-sm">
+                <button onclick="toggleEditMode()" class="flex items-center gap-2 px-3 md:px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all text-sm font-medium backdrop-blur-sm shadow-sm flex-shrink-0">
                     <i data-lucide="${state.isEditing ? 'layout-dashboard' : 'settings-2'}" class="w-4 h-4 text-gray-300"></i>
                     <span class="hidden sm:inline">${state.isEditing ? t.viewMode : t.editMode}</span>
                 </button>`;
 
             document.getElementById('header').innerHTML = `
-                <div class="flex items-center gap-4">
-                    <div class="p-3 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-lg" style="color: ${activePlatformDetails.color}">
-                        <i data-lucide="${activePlatformDetails.icon}" class="w-6 h-6"></i>
+                <div class="flex items-center gap-3 md:gap-4 w-full md:w-auto">
+                    <!-- Hamburger Menu Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2 text-white hover:bg-white/10 rounded-lg transition-colors flex-shrink-0">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    
+                    <div class="p-2.5 md:p-3 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-lg flex-shrink-0" style="color: ${activePlatformDetails.color}">
+                        <i data-lucide="${activePlatformDetails.icon}" class="w-5 h-5 md:w-6 md:h-6"></i>
                     </div>
-                    <div>
+                    <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
-                            <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">${t.reportFor} <span style="color: ${activePlatformDetails.color}">${activePlatformDetails.name[state.lang]}</span></h2>
+                            <h2 class="text-lg md:text-2xl font-bold text-white tracking-tight truncate">${t.reportFor} <span style="color: ${activePlatformDetails.color}">${activePlatformDetails.name[state.lang]}</span></h2>
                         </div>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">${t.clientLabel}</span>
-                            <select onchange="handleClientSwitch(this.value)" class="text-sm font-bold bg-transparent border-b border-white/20 text-white px-1 py-0.5 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none transition-colors hover:border-white/50">
+                        <div class="flex items-center gap-2 mt-0.5 md:mt-1">
+                            <span class="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider hidden sm:inline">${t.clientLabel}</span>
+                            <select onchange="handleClientSwitch(this.value)" class="max-w-[140px] sm:max-w-xs text-xs md:text-sm font-bold bg-transparent border-b border-white/20 text-white px-1 py-0.5 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none transition-colors hover:border-white/50 truncate">
                                 ${clientOptions}
                             </select>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 md:gap-3 flex-wrap">
-                    <!-- Date Range Badge (Visual) -->
+                
+                <div class="flex items-center gap-2 md:gap-3 flex-wrap mt-2 md:mt-0 w-full md:w-auto justify-end">
                     <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-black/40 border border-white/5 text-gray-300 rounded-lg text-sm font-medium">
                         <i data-lucide="calendar" class="w-4 h-4 text-orange-500"></i> ${t.dateRange}
                     </div>
 
-                    <button onclick="toggleLanguage()" class="flex items-center justify-center w-10 h-10 bg-white/5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/10 transition-all backdrop-blur-sm" title="Toggle Language">
-                        <i data-lucide="languages" class="w-5 h-5"></i>
+                    <button onclick="toggleLanguage()" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-white/5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/10 transition-all backdrop-blur-sm flex-shrink-0" title="Toggle Language">
+                        <i data-lucide="languages" class="w-4 h-4 md:w-5 md:h-5"></i>
                     </button>
                     
                     ${editBtnHTML}
-
-                    <div class="w-px h-6 bg-white/10 mx-1 hidden sm:block"></div>
                     
-                    <button onclick="saveData()" class="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-400 shadow-[0_4px_15px_rgba(234,88,12,0.4)] border border-orange-400/50 transition-all transform hover:-translate-y-0.5 text-sm font-bold">
+                    <button onclick="saveData()" class="flex items-center gap-2 px-3 md:px-5 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-400 shadow-[0_4px_15px_rgba(234,88,12,0.4)] border border-orange-400/50 transition-all transform hover:-translate-y-0.5 text-sm font-bold flex-shrink-0">
                         <i data-lucide="save" class="w-4 h-4"></i> <span class="hidden sm:inline">${t.save}</span>
                     </button>
                     
-                    <button class="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 text-white border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm font-medium backdrop-blur-sm">
-                        <i data-lucide="download-cloud" class="w-4 h-4 text-gray-400"></i> <span class="hidden sm:inline">${t.exportCSV}</span>
-                    </button>
-
-                    <button onclick="printReport()" class="flex items-center gap-2 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 shadow-sm transition-all text-sm font-medium backdrop-blur-sm">
-                        <i data-lucide="printer" class="w-4 h-4"></i>
+                    <button onclick="printReport()" class="flex items-center justify-center w-9 h-9 md:w-auto gap-2 md:px-4 md:py-2 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 shadow-sm transition-all text-sm font-medium backdrop-blur-sm flex-shrink-0">
+                        <i data-lucide="printer" class="w-4 h-4"></i> <span class="hidden lg:inline">${t.print}</span>
                     </button>
                 </div>
             `;
@@ -617,7 +628,6 @@
             
             const contentDiv = document.getElementById('main-content');
             
-            // Re-trigger fade-in animation
             contentDiv.classList.remove('animate-slide-up-fade');
             void contentDiv.offsetWidth; 
             contentDiv.classList.add('animate-slide-up-fade');
@@ -625,64 +635,64 @@
             if (state.isEditing) {
                 // --- Edit Mode ---
                 contentDiv.innerHTML = `
-                    <div class="glass-card p-6 md:p-8">
-                        <h3 class="text-xl font-bold text-white border-b border-white/10 pb-4 mb-6 flex items-center gap-2">
-                            <i data-lucide="settings" class="text-orange-500 w-6 h-6"></i> ${t.updateDataFor} ${activePlatformDetails.name[state.lang]}
+                    <div class="glass-card p-4 md:p-8">
+                        <h3 class="text-lg md:text-xl font-bold text-white border-b border-white/10 pb-4 mb-6 flex items-center gap-2">
+                            <i data-lucide="settings" class="text-orange-500 w-5 h-5 md:w-6 md:h-6"></i> ${t.updateDataFor} ${activePlatformDetails.name[state.lang]}
                         </h3>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="space-y-6">
-                                <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="briefcase" class="w-4 h-4"></i> ${t.clientInfo}</h4>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                            <div class="space-y-4 md:space-y-6">
+                                <h4 class="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="briefcase" class="w-4 h-4"></i> ${t.clientInfo}</h4>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.clientName}</label>
-                                    <input type="text" name="clientName" value="${currentData.clientName || ''}" oninput="updateField(this.name, this.value, 'text')" class="w-full px-4 py-3 glass-input text-lg" placeholder="${t.clientNamePH}">
+                                    <label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.clientName}</label>
+                                    <input type="text" name="clientName" value="${currentData.clientName || ''}" oninput="updateField(this.name, this.value, 'text')" class="w-full px-3 md:px-4 py-2.5 md:py-3 glass-input text-sm md:text-lg" placeholder="${t.clientNamePH}">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.clientDetails}</label>
-                                    <textarea name="clientDetails" oninput="updateField(this.name, this.value, 'text')" rows="2" class="w-full px-4 py-3 resize-none glass-input" placeholder="${t.clientDetailsPH}">${currentData.clientDetails || ''}</textarea>
+                                    <label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.clientDetails}</label>
+                                    <textarea name="clientDetails" oninput="updateField(this.name, this.value, 'text')" rows="2" class="w-full px-3 md:px-4 py-2.5 md:py-3 resize-none glass-input text-sm" placeholder="${t.clientDetailsPH}">${currentData.clientDetails || ''}</textarea>
                                 </div>
-                                <div class="pt-6 border-t border-white/10">
-                                    <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4 flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="target" class="w-4 h-4"></i> ${t.campaignSetup}</h4>
+                                <div class="pt-4 md:pt-6 border-t border-white/10">
+                                    <h4 class="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider mb-3 md:mb-4 flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="target" class="w-4 h-4"></i> ${t.campaignSetup}</h4>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.campaignName}</label>
-                                        <input type="text" name="campaignName" value="${currentData.campaignName || ''}" oninput="updateField(this.name, this.value, 'text')" class="w-full px-4 py-3 glass-input text-lg">
+                                        <label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.campaignName}</label>
+                                        <input type="text" name="campaignName" value="${currentData.campaignName || ''}" oninput="updateField(this.name, this.value, 'text')" class="w-full px-3 md:px-4 py-2.5 md:py-3 glass-input text-sm md:text-lg">
                                     </div>
                                     <div class="mt-4">
-                                        <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.targeting}</label>
-                                        <textarea name="targeting" oninput="updateField(this.name, this.value, 'text')" rows="3" class="w-full px-4 py-3 resize-none glass-input">${currentData.targeting || ''}</textarea>
+                                        <label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.targeting}</label>
+                                        <textarea name="targeting" oninput="updateField(this.name, this.value, 'text')" rows="3" class="w-full px-3 md:px-4 py-2.5 md:py-3 resize-none glass-input text-sm">${currentData.targeting || ''}</textarea>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-6 bg-black/30 p-6 rounded-2xl border border-white/5 shadow-inner">
-                                <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="trending-up" class="w-4 h-4"></i> ${t.resultsNumbers}</h4>
-                                <div class="grid grid-cols-2 gap-5">
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.budget}</label><div class="relative"><i data-lucide="dollar-sign" class="absolute ${isRTL?'right':'left'}-3 top-3 w-4 h-4 text-gray-500"></i><input type="number" name="budget" value="${currentData.budget || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 ${isRTL?'pr-9':'pl-9'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg text-green-400"></div></div>
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.spend}</label><div class="relative"><i data-lucide="dollar-sign" class="absolute ${isRTL?'right':'left'}-3 top-3 w-4 h-4 text-gray-500"></i><input type="number" name="spend" value="${currentData.spend || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 ${isRTL?'pr-9':'pl-9'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg text-orange-400"></div></div>
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.impressions}</label><input type="number" name="impressions" value="${currentData.impressions || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg"></div>
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.clicks}</label><input type="number" name="clicks" value="${currentData.clicks || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg"></div>
-                                    <div class="col-span-2"><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.conversions}</label><input type="number" name="conversions" value="${currentData.conversions || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-3 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-xl text-purple-400"></div>
+                            <div class="space-y-4 md:space-y-6 bg-black/30 p-4 md:p-6 rounded-2xl border border-white/5 shadow-inner">
+                                <h4 class="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="trending-up" class="w-4 h-4"></i> ${t.resultsNumbers}</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.budget}</label><div class="relative"><i data-lucide="dollar-sign" class="absolute ${isRTL?'right':'left'}-3 top-3 w-4 h-4 text-gray-500"></i><input type="number" name="budget" value="${currentData.budget || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 ${isRTL?'pr-8 md:pr-9':'pl-8 md:pl-9'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-base md:text-lg text-green-400"></div></div>
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.spend}</label><div class="relative"><i data-lucide="dollar-sign" class="absolute ${isRTL?'right':'left'}-3 top-3 w-4 h-4 text-gray-500"></i><input type="number" name="spend" value="${currentData.spend || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 ${isRTL?'pr-8 md:pr-9':'pl-8 md:pl-9'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-base md:text-lg text-orange-400"></div></div>
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.impressions}</label><input type="number" name="impressions" value="${currentData.impressions || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-base md:text-lg"></div>
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.clicks}</label><input type="number" name="clicks" value="${currentData.clicks || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-base md:text-lg"></div>
+                                    <div class="sm:col-span-2"><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.conversions}</label><input type="number" name="conversions" value="${currentData.conversions || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2.5 md:py-3 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg md:text-xl text-purple-400"></div>
                                 </div>
                             </div>
 
-                            <div class="space-y-6 bg-black/30 p-6 rounded-2xl border border-white/5 lg:col-span-2 shadow-inner">
-                                <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="users" class="w-4 h-4"></i> ${t.engagementTab}</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.likes}</label><input type="number" name="likes" value="${currentData.likes || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"></div>
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.comments}</label><input type="number" name="comments" value="${currentData.comments || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"></div>
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.shares}</label><input type="number" name="shares" value="${currentData.shares || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"></div>
-                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.engagementRate}</label><div class="relative"><input type="number" step="0.1" name="engagementRate" value="${currentData.engagementRate || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 ${isRTL?'pl-8':'pr-8'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"><span class="absolute ${isRTL?'left-3':'right-3'} top-2 text-gray-500">%</span></div></div>
+                            <div class="space-y-4 md:space-y-6 bg-black/30 p-4 md:p-6 rounded-2xl border border-white/5 lg:col-span-2 shadow-inner">
+                                <h4 class="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="users" class="w-4 h-4"></i> ${t.engagementTab}</h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.likes}</label><input type="number" name="likes" value="${currentData.likes || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-sm md:text-base"></div>
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.comments}</label><input type="number" name="comments" value="${currentData.comments || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-sm md:text-base"></div>
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.shares}</label><input type="number" name="shares" value="${currentData.shares || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-sm md:text-base"></div>
+                                    <div><label class="block text-xs md:text-sm font-medium text-gray-400 mb-1.5">${t.engagementRate}</label><div class="relative"><input type="number" step="0.1" name="engagementRate" value="${currentData.engagementRate || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-3 md:px-4 py-2 ${isRTL?'pl-6 md:pl-8':'pr-6 md:pr-8'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-sm md:text-base"><span class="absolute ${isRTL?'left-2 md:left-3':'right-2 md:right-3'} top-2 text-gray-500">%</span></div></div>
                                 </div>
                             </div>
 
-                            <div class="space-y-6 lg:col-span-2 pt-4 border-t border-white/10">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4 md:space-y-6 lg:col-span-2 pt-2 md:pt-4 border-t border-white/10">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                                     <div>
-                                        <h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3"><i data-lucide="activity" class="text-blue-400 w-4 h-4"></i> ${t.techAnalysisTab}</h4>
-                                        <textarea name="technicalAnalysis" oninput="updateField(this.name, this.value, 'text')" rows="4" class="w-full px-4 py-3 resize-none glass-input leading-relaxed" placeholder="${t.techAnalysisPH}">${currentData.technicalAnalysis || ''}</textarea>
+                                        <h4 class="text-xs md:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-2 md:mb-3"><i data-lucide="activity" class="text-blue-400 w-4 h-4"></i> ${t.techAnalysisTab}</h4>
+                                        <textarea name="technicalAnalysis" oninput="updateField(this.name, this.value, 'text')" rows="4" class="w-full px-3 md:px-4 py-2.5 md:py-3 resize-none glass-input text-sm leading-relaxed" placeholder="${t.techAnalysisPH}">${currentData.technicalAnalysis || ''}</textarea>
                                     </div>
                                     <div>
-                                        <h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3"><i data-lucide="lightbulb" class="text-yellow-400 w-4 h-4"></i> ${t.futureStrategyTab}</h4>
-                                        <textarea name="futureStrategy" oninput="updateField(this.name, this.value, 'text')" rows="4" class="w-full px-4 py-3 resize-none glass-input leading-relaxed" placeholder="${t.futureStrategyPH}">${currentData.futureStrategy || ''}</textarea>
+                                        <h4 class="text-xs md:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-2 md:mb-3"><i data-lucide="lightbulb" class="text-yellow-400 w-4 h-4"></i> ${t.futureStrategyTab}</h4>
+                                        <textarea name="futureStrategy" oninput="updateField(this.name, this.value, 'text')" rows="4" class="w-full px-3 md:px-4 py-2.5 md:py-3 resize-none glass-input text-sm leading-relaxed" placeholder="${t.futureStrategyPH}">${currentData.futureStrategy || ''}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -699,93 +709,92 @@
 
                 contentDiv.innerHTML = `
                     <!-- Header Card -->
-                    <div class="glass-card p-6 md:p-8 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                        <div class="flex flex-col md:flex-row justify-between items-start gap-6 relative z-10">
-                            <div class="flex-1">
-                                <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${isRTL ? 'from-white to-gray-400' : 'from-white to-gray-400'} mb-3 tracking-tight">${currentData.clientName || t.unspecified}</h1>
-                                <p class="text-gray-400 max-w-2xl leading-relaxed text-lg">${currentData.clientDetails || '-'}</p>
+                    <div class="glass-card p-4 md:p-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 md:w-64 h-32 md:h-64 bg-white/5 rounded-full blur-2xl md:blur-3xl -mr-10 md:-mr-20 -mt-10 md:-mt-20"></div>
+                        <div class="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6 relative z-10">
+                            <div class="flex-1 w-full">
+                                <h1 class="text-2xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${isRTL ? 'from-white to-gray-400' : 'from-white to-gray-400'} mb-2 md:mb-3 tracking-tight break-words">${currentData.clientName || t.unspecified}</h1>
+                                <p class="text-gray-400 max-w-2xl leading-relaxed text-sm md:text-lg">${currentData.clientDetails || '-'}</p>
                             </div>
-                            <div class="flex flex-col items-center justify-center p-5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl min-w-[140px]">
-                                <i data-lucide="${activePlatformDetails.icon}" style="color: ${activePlatformDetails.color}" class="w-10 h-10 mb-2 drop-shadow-lg"></i>
+                            <div class="flex flex-row md:flex-col items-center justify-center p-3 md:p-5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl w-full md:min-w-[140px] md:w-auto gap-3 md:gap-0">
+                                <i data-lucide="${activePlatformDetails.icon}" style="color: ${activePlatformDetails.color}" class="w-8 h-8 md:w-10 md:h-10 md:mb-2 drop-shadow-lg flex-shrink-0"></i>
                                 <span class="text-sm font-bold text-white">${activePlatformDetails.name[state.lang]}</span>
                             </div>
                         </div>
-                        <div class="mt-8 pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                            <div><span class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-2">${t.campaignLabel}</span><p class="text-xl font-bold text-white">${currentData.campaignName || '-'}</p></div>
-                            <div><span class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-2">${t.targetingLabel}</span><p class="text-sm text-gray-300 bg-black/30 p-3 rounded-lg border border-white/5 leading-relaxed">${currentData.targeting || '-'}</p></div>
+                        <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 relative z-10">
+                            <div><span class="text-[10px] md:text-xs font-bold text-orange-500 uppercase tracking-widest block mb-1 md:mb-2">${t.campaignLabel}</span><p class="text-lg md:text-xl font-bold text-white">${currentData.campaignName || '-'}</p></div>
+                            <div><span class="text-[10px] md:text-xs font-bold text-orange-500 uppercase tracking-widest block mb-1 md:mb-2">${t.targetingLabel}</span><p class="text-xs md:text-sm text-gray-300 bg-black/30 p-2.5 md:p-3 rounded-lg border border-white/5 leading-relaxed">${currentData.targeting || '-'}</p></div>
                         </div>
                     </div>
 
-                    <h2 class="text-2xl font-extrabold text-white mt-4 mb-2 flex items-center gap-3"><i data-lucide="bar-chart" class="text-orange-500 w-7 h-7"></i> ${t.overviewTab}</h2>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-white mt-2 md:mt-4 mb-2 flex items-center gap-2 md:gap-3"><i data-lucide="bar-chart" class="text-orange-500 w-6 h-6 md:w-7 md:h-7"></i> ${t.overviewTab}</h2>
                     
                     <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                        <div class="glass-card p-6 flex items-center justify-between group">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                        <div class="glass-card p-4 md:p-6 flex items-center justify-between group">
                             <div>
-                                <p class="text-sm text-gray-400 font-medium mb-1">${t.spendVsBudget}</p>
-                                <h3 class="text-3xl font-bold text-white font-mono flex items-baseline gap-1">$<span class="animate-number" data-value="${Number(currentData.spend)||0}">0</span></h3>
-                                <p class="text-xs text-gray-500 mt-2">${t.outOf} $<span class="animate-number" data-value="${Number(currentData.budget)||0}">0</span></p>
+                                <p class="text-xs md:text-sm text-gray-400 font-medium mb-1">${t.spendVsBudget}</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-white font-mono flex items-baseline gap-1">$<span class="animate-number" data-value="${Number(currentData.spend)||0}">0</span></h3>
+                                <p class="text-[10px] md:text-xs text-gray-500 mt-1.5 md:mt-2">${t.outOf} $<span class="animate-number" data-value="${Number(currentData.budget)||0}">0</span></p>
                             </div>
                             <div class="relative">
-                                ${generateProgressRingHTML(36, 6, stats.budgetUsedPct, 'text-orange-500')}
-                                <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-orange-400"><span class="animate-number" data-value="${stats.budgetUsedPct}">0</span>%</span>
+                                ${generateProgressRingHTML(32, 5, stats.budgetUsedPct, 'text-orange-500')}
+                                <span class="absolute inset-0 flex items-center justify-center text-xs md:text-sm font-bold text-orange-400"><span class="animate-number" data-value="${stats.budgetUsedPct}">0</span>%</span>
                             </div>
                         </div>
-                        <div class="glass-card p-6 flex flex-col justify-center">
-                            <div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-white/5 text-gray-300 rounded-xl border border-white/10"><i data-lucide="eye" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-medium">${t.impressionsLabel}</p></div>
-                            <h3 class="text-3xl font-bold text-white font-mono"><span class="animate-number" data-value="${Number(currentData.impressions)||0}">0</span></h3>
+                        <div class="glass-card p-4 md:p-6 flex flex-col justify-center">
+                            <div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3"><div class="p-2 md:p-2.5 bg-white/5 text-gray-300 rounded-xl border border-white/10"><i data-lucide="eye" class="w-4 h-4 md:w-5 md:h-5"></i></div><p class="text-xs md:text-sm text-gray-400 font-medium">${t.impressionsLabel}</p></div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-white font-mono"><span class="animate-number" data-value="${Number(currentData.impressions)||0}">0</span></h3>
                         </div>
-                        <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden">
-                            <div class="flex items-center gap-3 mb-3 relative z-10"><div class="p-2.5 bg-orange-500/10 text-orange-400 rounded-xl border border-orange-500/20"><i data-lucide="mouse-pointer-click" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-medium">${t.totalClicks}</p></div>
-                            <h3 class="text-3xl font-bold text-white font-mono relative z-10"><span class="animate-number" data-value="${Number(currentData.clicks)||0}">0</span></h3>
-                            <p class="text-xs font-bold text-orange-400 mt-2 bg-orange-500/10 border border-orange-500/20 inline-block px-2.5 py-1 rounded-md w-fit relative z-10">CTR: <span class="animate-number" data-float="true" data-value="${stats.ctr}">0.00</span>%</p>
+                        <div class="glass-card p-4 md:p-6 flex flex-col justify-center relative overflow-hidden">
+                            <div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3 relative z-10"><div class="p-2 md:p-2.5 bg-orange-500/10 text-orange-400 rounded-xl border border-orange-500/20"><i data-lucide="mouse-pointer-click" class="w-4 h-4 md:w-5 md:h-5"></i></div><p class="text-xs md:text-sm text-gray-400 font-medium">${t.totalClicks}</p></div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-white font-mono relative z-10"><span class="animate-number" data-value="${Number(currentData.clicks)||0}">0</span></h3>
+                            <p class="text-[10px] md:text-xs font-bold text-orange-400 mt-1.5 md:mt-2 bg-orange-500/10 border border-orange-500/20 inline-block px-2 md:px-2.5 py-0.5 md:py-1 rounded-md w-fit relative z-10">CTR: <span class="animate-number" data-float="true" data-value="${stats.ctr}">0.00</span>%</p>
                         </div>
-                        <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-green-500/5 to-transparent border-green-500/20">
-                            <div class="absolute ${isRTL ? '-left-6' : '-right-6'} -bottom-6 opacity-10 pointer-events-none transform rotate-12"><i data-lucide="target" class="text-green-400 w-32 h-32"></i></div>
-                            <div class="flex items-center gap-3 mb-3 relative z-10"><div class="p-2.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl shadow-[0_0_15px_rgba(74,222,128,0.2)]"><i data-lucide="target" class="w-5 h-5"></i></div><p class="text-sm text-green-400/80 font-medium">${t.conversionsLabel}</p></div>
-                            <h3 class="text-4xl font-black text-white font-mono relative z-10 drop-shadow-md"><span class="animate-number" data-value="${Number(currentData.conversions)||0}">0</span></h3>
+                        <div class="glass-card p-4 md:p-6 flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-green-500/5 to-transparent border-green-500/20">
+                            <div class="absolute ${isRTL ? '-left-6' : '-right-6'} -bottom-6 opacity-10 pointer-events-none transform rotate-12"><i data-lucide="target" class="text-green-400 w-24 h-24 md:w-32 md:h-32"></i></div>
+                            <div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3 relative z-10"><div class="p-2 md:p-2.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl shadow-[0_0_15px_rgba(74,222,128,0.2)]"><i data-lucide="target" class="w-4 h-4 md:w-5 md:h-5"></i></div><p class="text-xs md:text-sm text-green-400/80 font-medium">${t.conversionsLabel}</p></div>
+                            <h3 class="text-3xl md:text-4xl font-black text-white font-mono relative z-10 drop-shadow-md"><span class="animate-number" data-value="${Number(currentData.conversions)||0}">0</span></h3>
                         </div>
                     </div>
 
                     <!-- Charts & Finance -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
-                        <div class="lg:col-span-2 glass-card p-8">
-                            <h3 class="text-lg font-bold text-white mb-8 flex items-center gap-2"><i data-lucide="filter" class="text-orange-500 w-5 h-5"></i> ${t.funnel}</h3>
-                            <div class="pt-6 border-b border-white/5 pb-2">${generateBarChartHTML(barChartData)}</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mt-2">
+                        <div class="lg:col-span-2 glass-card p-4 md:p-8">
+                            <h3 class="text-base md:text-lg font-bold text-white mb-6 md:mb-8 flex items-center gap-2"><i data-lucide="filter" class="text-orange-500 w-4 h-4 md:w-5 md:h-5"></i> ${t.funnel}</h3>
+                            <div class="pt-4 md:pt-6 border-b border-white/5 pb-2 overflow-x-auto">${generateBarChartHTML(barChartData)}</div>
                         </div>
-                        <div class="glass-card p-8 border-orange-500/30 shadow-[0_0_40px_rgba(234,88,12,0.08)] bg-gradient-to-b from-transparent to-orange-900/10">
-                            <h3 class="text-lg font-bold text-white mb-8 flex items-center gap-2 border-b border-white/10 pb-4"><i data-lucide="dollar-sign" class="text-orange-500 w-5 h-5 bg-orange-500/20 rounded-full p-1"></i> ${t.costAnalysis}</h3>
-                            <div class="space-y-8">
-                                <div><p class="text-gray-400 text-sm mb-2 font-medium">${t.cpc}</p><div class="flex items-end gap-2"><span class="text-4xl font-black font-mono text-white tracking-tighter">$<span class="animate-number" data-float="true" data-value="${stats.cpc}">0.00</span></span><span class="text-xs font-bold text-orange-400 mb-1.5 px-2 py-0.5 bg-orange-500/10 rounded">${t.goodAvg}</span></div></div>
-                                <div><p class="text-gray-400 text-sm mb-2 font-medium">${t.cpa}</p><div class="flex items-end gap-2"><span class="text-4xl font-black font-mono text-white tracking-tighter">$<span class="animate-number" data-float="true" data-value="${stats.cpa}">0.00</span></span><span class="text-xs text-gray-500 mb-1.5">${t.perConversion}</span></div></div>
-                                <div class="pt-6 mt-4 border-t border-white/10">
-                                    <div class="flex justify-between items-center mb-3"><span class="text-sm font-medium text-gray-400">${t.remainingBudget}</span><span class="text-base font-bold font-mono text-white">$<span class="animate-number" data-value="${(Number(currentData.budget)||0) - (Number(currentData.spend)||0)}">0</span></span></div>
-                                    <div class="w-full bg-black/50 rounded-full h-2.5 flex ${isRTL ? 'justify-end' : 'justify-start'} overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-orange-600 to-orange-400 h-2.5 rounded-full shadow-[0_0_12px_rgba(234,88,12,0.8)]" style="width: ${100 - stats.budgetUsedPct}%"></div></div>
+                        <div class="glass-card p-4 md:p-8 border-orange-500/30 shadow-[0_0_40px_rgba(234,88,12,0.08)] bg-gradient-to-b from-transparent to-orange-900/10">
+                            <h3 class="text-base md:text-lg font-bold text-white mb-6 md:mb-8 flex items-center gap-2 border-b border-white/10 pb-3 md:pb-4"><i data-lucide="dollar-sign" class="text-orange-500 w-5 h-5 bg-orange-500/20 rounded-full p-1"></i> ${t.costAnalysis}</h3>
+                            <div class="space-y-6 md:space-y-8">
+                                <div><p class="text-gray-400 text-xs md:text-sm mb-1.5 md:mb-2 font-medium">${t.cpc}</p><div class="flex items-end gap-2"><span class="text-3xl md:text-4xl font-black font-mono text-white tracking-tighter">$<span class="animate-number" data-float="true" data-value="${stats.cpc}">0.00</span></span><span class="text-[10px] md:text-xs font-bold text-orange-400 mb-1.5 px-2 py-0.5 bg-orange-500/10 rounded">${t.goodAvg}</span></div></div>
+                                <div><p class="text-gray-400 text-xs md:text-sm mb-1.5 md:mb-2 font-medium">${t.cpa}</p><div class="flex items-end gap-2"><span class="text-3xl md:text-4xl font-black font-mono text-white tracking-tighter">$<span class="animate-number" data-float="true" data-value="${stats.cpa}">0.00</span></span><span class="text-[10px] md:text-xs text-gray-500 mb-1.5">${t.perConversion}</span></div></div>
+                                <div class="pt-4 md:pt-6 mt-3 md:mt-4 border-t border-white/10">
+                                    <div class="flex justify-between items-center mb-2 md:mb-3"><span class="text-xs md:text-sm font-medium text-gray-400">${t.remainingBudget}</span><span class="text-sm md:text-base font-bold font-mono text-white">$<span class="animate-number" data-value="${(Number(currentData.budget)||0) - (Number(currentData.spend)||0)}">0</span></span></div>
+                                    <div class="w-full bg-black/50 rounded-full h-2 md:h-2.5 flex ${isRTL ? 'justify-end' : 'justify-start'} overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-orange-600 to-orange-400 h-2 md:h-2.5 rounded-full shadow-[0_0_12px_rgba(234,88,12,0.8)]" style="width: ${100 - stats.budgetUsedPct}%"></div></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Engagement Section -->
-                    <div class="mt-10 mb-8 print:break-inside-avoid">
-                        <h2 class="text-2xl font-extrabold text-white mb-6 flex items-center gap-3"><i data-lucide="users-2" class="text-orange-500 w-7 h-7"></i> ${t.engagementTab}</h2>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-xl"><i data-lucide="heart" class="w-5 h-5 fill-current"></i></div><p class="text-sm text-gray-400 font-bold">${t.likes}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.likes)||0}">0</span></h3></div>
-                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl"><i data-lucide="message-square" class="w-5 h-5 fill-current"></i></div><p class="text-sm text-gray-400 font-bold">${t.comments}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.comments)||0}">0</span></h3></div>
-                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-xl"><i data-lucide="share-2" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-bold">${t.shares}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.shares)||0}">0</span></h3></div>
-                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl"><i data-lucide="activity" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-bold">${t.engagementRate}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-float="true" data-value="${Number(currentData.engagementRate)||0}">0</span>%</h3></div>
+                    <div class="mt-8 md:mt-10 mb-6 md:mb-8 print:break-inside-avoid">
+                        <h2 class="text-xl md:text-2xl font-extrabold text-white mb-4 md:mb-6 flex items-center gap-2 md:gap-3"><i data-lucide="users-2" class="text-orange-500 w-6 h-6 md:w-7 md:h-7"></i> ${t.engagementTab}</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+                            <div class="glass-card p-4 md:p-6 hover:bg-white/5"><div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3"><div class="p-2 md:p-2.5 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-lg md:rounded-xl"><i data-lucide="heart" class="w-4 h-4 md:w-5 md:h-5 fill-current"></i></div><p class="text-[10px] md:text-sm text-gray-400 font-bold">${t.likes}</p></div><h3 class="text-xl md:text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.likes)||0}">0</span></h3></div>
+                            <div class="glass-card p-4 md:p-6 hover:bg-white/5"><div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3"><div class="p-2 md:p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg md:rounded-xl"><i data-lucide="message-square" class="w-4 h-4 md:w-5 md:h-5 fill-current"></i></div><p class="text-[10px] md:text-sm text-gray-400 font-bold">${t.comments}</p></div><h3 class="text-xl md:text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.comments)||0}">0</span></h3></div>
+                            <div class="glass-card p-4 md:p-6 hover:bg-white/5"><div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3"><div class="p-2 md:p-2.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-lg md:rounded-xl"><i data-lucide="share-2" class="w-4 h-4 md:w-5 md:h-5"></i></div><p class="text-[10px] md:text-sm text-gray-400 font-bold">${t.shares}</p></div><h3 class="text-xl md:text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.shares)||0}">0</span></h3></div>
+                            <div class="glass-card p-4 md:p-6 hover:bg-white/5"><div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3"><div class="p-2 md:p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg md:rounded-xl"><i data-lucide="activity" class="w-4 h-4 md:w-5 md:h-5"></i></div><p class="text-[10px] md:text-sm text-gray-400 font-bold">${t.engagementRate}</p></div><h3 class="text-xl md:text-2xl font-black text-white font-mono"><span class="animate-number" data-float="true" data-value="${Number(currentData.engagementRate)||0}">0</span>%</h3></div>
                         </div>
                     </div>
 
                     <!-- Analysis & Strategy -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 print:break-inside-avoid">
-                        <div class="glass-card p-8 border-t-4 border-t-blue-500/50 hover:border-t-blue-500 transition-colors"><h2 class="text-xl font-bold text-white mb-5 flex items-center gap-3"><i data-lucide="line-chart" class="text-blue-400 w-6 h-6"></i> ${t.techAnalysisTab}</h2><div class="bg-black/30 p-5 rounded-xl border border-white/5 min-h-[140px] shadow-inner"><p class="text-gray-300 leading-relaxed whitespace-pre-wrap text-base">${currentData.technicalAnalysis || '-'}</p></div></div>
-                        <div class="glass-card p-8 border-t-4 border-t-yellow-500/50 hover:border-t-yellow-500 transition-colors bg-gradient-to-b from-yellow-500/5 to-transparent"><h2 class="text-xl font-bold text-white mb-5 flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400 w-6 h-6 fill-current"></i> ${t.futureStrategyTab}</h2><div class="bg-black/30 p-5 rounded-xl border border-white/5 min-h-[140px] shadow-inner"><p class="text-gray-300 leading-relaxed whitespace-pre-wrap text-base">${currentData.futureStrategy || '-'}</p></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4 print:break-inside-avoid">
+                        <div class="glass-card p-4 md:p-8 border-t-4 border-t-blue-500/50 hover:border-t-blue-500 transition-colors"><h2 class="text-lg md:text-xl font-bold text-white mb-4 md:mb-5 flex items-center gap-2 md:gap-3"><i data-lucide="line-chart" class="text-blue-400 w-5 h-5 md:w-6 md:h-6"></i> ${t.techAnalysisTab}</h2><div class="bg-black/30 p-4 md:p-5 rounded-xl border border-white/5 min-h-[120px] shadow-inner"><p class="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm md:text-base">${currentData.technicalAnalysis || '-'}</p></div></div>
+                        <div class="glass-card p-4 md:p-8 border-t-4 border-t-yellow-500/50 hover:border-t-yellow-500 transition-colors bg-gradient-to-b from-yellow-500/5 to-transparent"><h2 class="text-lg md:text-xl font-bold text-white mb-4 md:mb-5 flex items-center gap-2 md:gap-3"><i data-lucide="lightbulb" class="text-yellow-400 w-5 h-5 md:w-6 md:h-6 fill-current"></i> ${t.futureStrategyTab}</h2><div class="bg-black/30 p-4 md:p-5 rounded-xl border border-white/5 min-h-[120px] shadow-inner"><p class="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm md:text-base">${currentData.futureStrategy || '-'}</p></div></div>
                     </div>
                 `;
 
-                // Trigger animations after injecting HTML
                 setTimeout(() => {
                     animateNumbers();
                     animateProgressRings();
@@ -807,6 +816,4 @@
         });
     </script>
 </body>
-
 </html>
-
