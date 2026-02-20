@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Ad Analytics Dashboard - Glassmorphism</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config for Custom Animations -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'spin-slow': 'spin 8s linear infinite',
+                        'blob': 'blob 7s infinite',
+                        'grow-up': 'growUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up-fade': 'slideUpFade 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        growUp: {
+                            '0%': { transform: 'scaleY(0)', opacity: '0' },
+                            '100%': { transform: 'scaleY(1)', opacity: '1' },
+                        },
+                        slideUpFade: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* الخطوط */
+        html[dir="rtl"] { font-family: 'Cairo', sans-serif; }
+        html[dir="ltr"] { font-family: 'Inter', sans-serif; }
+
+        /* سكرول بار أنيق */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(234, 88, 12, 0.5); }
+
+        /* Glassmorphism Classes */
+        .glass-card { 
+            background: rgba(20, 20, 20, 0.4); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); 
+            border-radius: 1rem; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(234, 88, 12, 0.2);
+            box-shadow: 0 10px 40px rgba(234, 88, 12, 0.05);
+        }
+        
+        .glass-input { 
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 0.5rem; 
+            color: white; 
+            transition: all 0.3s ease; 
+        }
+        .glass-input:focus { 
+            outline: none; 
+            box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.4); 
+            border-color: #ea580c; 
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        /* Chart bar origins */
+        .chart-bar { transform-origin: bottom; }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed; bottom: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+            pointer-events: none;
+        }
+        html[dir="rtl"] #toast-container { left: 20px; }
+        html[dir="ltr"] #toast-container { right: 20px; }
+
+        .toast {
+            background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(12px);
+            border: 1px solid rgba(234, 88, 12, 0.3); border-left: 4px solid #ea580c;
+            color: white; padding: 12px 20px; border-radius: 8px;
+            display: flex; items-center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideUpFade 0.4s ease-out forwards;
+        }
+        html[dir="rtl"] .toast { border-left: none; border-right: 4px solid #ea580c; }
+
+        /* Print Styles - تصميم احترافي للطباعة العادية */
+        @media print {
+            @page { size: A3 portrait; margin: 10mm; } /* استخدام A3 لضمان مساحة واسعة تناسب الداشبورد */
+            
+            /* إجبار المتصفح على طباعة الألوان الداكنة */
+            body, html { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                background-color: #050505 !important;
+                color: #ffffff !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            
+            /* إخفاء القوائم والتأثيرات المعقدة */
+            .no-print, #sidebar, #header, .animate-blob, #toast-container { 
+                display: none !important; 
+            }
+            
+            /* إعادة ضبط الحاويات لتناسب الورق */
+            #app-container, main, #content-area { 
+                height: auto !important; 
+                overflow: visible !important; 
+                display: block !important;
+                position: static !important;
+                padding: 0 !important;
+            }
+            #main-content { 
+                max-width: 100% !important; 
+                animation: none !important; 
+                opacity: 1 !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+            }
+            
+            /* تحويل البطاقات الزجاجية إلى بطاقات صلبة وأنيقة للطباعة */
+            .glass-card { 
+                break-inside: avoid !important; 
+                page-break-inside: avoid !important;
+                background-color: #121212 !important;
+                border: 1px solid #333 !important; 
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                transform: none !important;
+            }
+            
+            .text-gray-400 { color: #9ca3af !important; }
+            .text-gray-300 { color: #d1d5db !important; }
+            .text-orange-500 { color: #ea580c !important; }
+            .text-orange-400 { color: #fb923c !important; }
+            .bg-orange-500 { background-color: #ea580c !important; }
+            
+            /* إيقاف الحركات في الطباعة */
+            * { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-[#050505] text-gray-100 selection:bg-orange-500/40 overflow-hidden font-sans">
+
+    <!-- الحاوية الرئيسية والتأثيرات -->
+    <div id="app-container" dir="ltr" class="flex h-screen relative overflow-hidden">
+        
+        <!-- Animated Background Orbs -->
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-orange-600/10 mix-blend-screen filter blur-[100px] animate-blob z-0 pointer-events-none"></div>
+        <div class="absolute top-[20%] right-[-20%] w-[40vw] h-[40vw] rounded-full bg-blue-600/5 mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000 z-0 pointer-events-none"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[40vw] h-[40vw] rounded-full bg-purple-600/5 mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000 z-0 pointer-events-none"></div>
+
+        <!-- القائمة الجانبية -->
+        <aside id="sidebar" class="no-print w-64 bg-black/30 backdrop-blur-3xl border-white/5 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.8)] transition-all">
+            <!-- سيتم حقن المحتوى بواسطة JS -->
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden print-full-width relative z-10">
+            <!-- شريط التحكم (Header) -->
+            <header id="header" class="no-print bg-black/20 backdrop-blur-2xl px-8 py-5 border-b border-white/5 flex flex-wrap gap-4 justify-between items-center z-20">
+                <!-- سيتم حقن المحتوى بواسطة JS -->
+            </header>
+
+            <!-- منطقة العرض / التعديل -->
+            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 print-full-width relative scroll-smooth">
+                <div id="main-content" class="max-w-7xl mx-auto space-y-6 print-full-width opacity-0 animate-slide-up-fade">
+                    <!-- سيتم حقن المحتوى بواسطة JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- حاوية الإشعارات -->
+    <div id="toast-container"></div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- البيانات والترجمة ---
+        const TRANSLATIONS = {
+            ar: {
+                appTitle: "نظام التحليلات", appDesc: "إدارة الأداء الذكية", platformsTitle: "المنصات الإعلانية",
+                accountManager: "المدير التنفيذي", agency: "وكالة ديجيتال", reportFor: "تقرير أداء",
+                clientLabel: "العميل الحالي:", unspecified: "غير محدد", selectClient: "اختر العميل...", newClient: "إضافة عميل جديد +",
+                viewMode: "وضع العرض", editMode: "تعديل", save: "حفظ البيانات", print: "تصدير PDF",
+                exportCSV: "تصدير CSV", dateRange: "هذا الشهر",
+                savedSuccess: "تم حفظ بيانات الحملة بنجاح!", updateDataFor: "إعدادات حملة", clientInfo: "بيانات العميل",
+                clientName: "اسم الشركة / العميل", clientNamePH: "أدخل اسم العميل...", clientDetails: "نشاط العميل",
+                clientDetailsPH: "وصف مبسط لنشاط العميل...", campaignSetup: "الاستهداف والحملة", campaignName: "اسم الحملة",
+                targeting: "الاستهداف (ديموغرافيا واهتمامات)", resultsNumbers: "مؤشرات الأداء الرئيسية (KPIs)", budget: "الميزانية الكلية ($)",
+                spend: "المصروف الفعلي ($)", impressions: "مرات الظهور (Impressions)", clicks: "النقرات (Clicks)", conversions: "التحويلات (Conversions)",
+                campaignLabel: "الحملة الإعلانية", targetingLabel: "الاستهداف", spendVsBudget: "الإنفاق مقابل الميزانية",
+                outOf: "من أصل", totalClicks: "إجمالي النقرات", funnel: "مسار التحويل الإعلاني (Funnel)",
+                costAnalysis: "التحليل المالي والكفاءة", cpc: "تكلفة النقرة (CPC)", goodAvg: "أداء ممتاز",
+                cpa: "تكلفة الاستحواذ (CPA)", perConversion: "لكل عملية ناجحة", remainingBudget: "الميزانية المتبقية",
+                impressionsLabel: "الظهور", clicksLabel: "النقرات", conversionsLabel: "التحويلات", overviewTab: "نظرة عامة (Overview)",
+                engagementTab: "تفاعل الجمهور (Engagement)", techAnalysisTab: "التحليل الفني", futureStrategyTab: "خطوات التوسعة المستقبلية",
+                likes: "الإعجابات", comments: "التعليقات", shares: "المشاركات", engagementRate: "معدل التفاعل (%)",
+                techAnalysisPH: "اكتب تحليلك لأداء الحملة (أفضل الأوقات، نوع المحتوى...)", futureStrategyPH: "اكتب توصياتك للعميل والمرحلة القادمة..."
+            },
+            en: {
+                appTitle: "Analytics Pro", appDesc: "Smart Performance Mgt", platformsTitle: "Ad Platforms",
+                accountManager: "Executive Manager", agency: "Digital Agency", reportFor: "Performance Report",
+                clientLabel: "Current Client:", unspecified: "Unspecified", selectClient: "Select Client...", newClient: "Add New Client +",
+                viewMode: "View Mode", editMode: "Edit", save: "Save Data", print: "Export PDF",
+                exportCSV: "Export CSV", dateRange: "This Month",
+                savedSuccess: "Campaign data saved successfully!", updateDataFor: "Campaign Settings for", clientInfo: "Client Info",
+                clientName: "Company / Client Name", clientNamePH: "Enter client name...", clientDetails: "Business Activity",
+                clientDetailsPH: "Brief description of the business...", campaignSetup: "Targeting & Campaign", campaignName: "Campaign Name",
+                targeting: "Targeting (Demographics & Interests)", resultsNumbers: "Key Performance Indicators (KPIs)", budget: "Total Budget ($)",
+                spend: "Actual Spend ($)", impressions: "Impressions", clicks: "Clicks", conversions: "Conversions",
+                campaignLabel: "Ad Campaign", targetingLabel: "Targeting", spendVsBudget: "Spend vs Budget",
+                outOf: "out of", totalClicks: "Total Clicks", funnel: "Advertising Funnel",
+                costAnalysis: "Financial Efficiency Analysis", cpc: "Cost Per Click (CPC)", goodAvg: "Excellent",
+                cpa: "Cost Per Acquisition (CPA)", perConversion: "per conversion", remainingBudget: "Remaining Budget",
+                impressionsLabel: "Impressions", clicksLabel: "Clicks", conversionsLabel: "Conversions", overviewTab: "Overview",
+                engagementTab: "Audience Engagement", techAnalysisTab: "Technical Analysis", futureStrategyTab: "Future Scaling Strategy",
+                likes: "Likes", comments: "Comments", shares: "Shares", engagementRate: "Engagement Rate (%)",
+                techAnalysisPH: "Write your analysis (best times, content type...)", futureStrategyPH: "Write recommendations and next steps..."
+            }
+        };
+
+        const PLATFORMS = [
+            { id: 'facebook', name: { ar: 'فيسبوك', en: 'Facebook' }, icon: 'facebook', color: '#1877F2' },
+            { id: 'instagram', name: { ar: 'إنستجرام', en: 'Instagram' }, icon: 'instagram', color: '#E4405F' },
+            { id: 'twitter', name: { ar: 'إكس (تويتر)', en: 'X (Twitter)' }, icon: 'twitter', color: '#ffffff' },
+            { id: 'linkedin', name: { ar: 'لينكد إن', en: 'LinkedIn' }, icon: 'linkedin', color: '#0A66C2' },
+            { id: 'snapchat', name: { ar: 'سناب شات', en: 'Snapchat' }, icon: 'smartphone', color: '#FFFC00' },
+            { id: 'tiktok', name: { ar: 'تيك توك', en: 'TikTok' }, icon: 'video', color: '#ffffff' },
+            { id: 'google', name: { ar: 'إعلانات جوجل', en: 'Google Ads' }, icon: 'search', color: '#EA4335' },
+        ];
+
+        const getDefaultData = (lang) => ({
+            clientName: lang === 'ar' ? 'مجموعة القمة العقارية' : 'Al-Qimma Group',
+            clientDetails: lang === 'ar' ? 'تطوير عقاري فاخر، استهداف المستثمرين والباحثين عن الرقي.' : 'Luxury real estate development, targeting investors.',
+            campaignName: lang === 'ar' ? 'حملة إطلاق كمبوند الـ VIP' : 'VIP Compound Launch',
+            targeting: lang === 'ar' ? 'السعودية، الإمارات | العمر: 35-60 | الاهتمامات: استثمار، عقارات فاخرة' : 'KSA, UAE | Age: 35-60 | Interests: Investment, Luxury',
+            budget: 25000, spend: 18450, impressions: 850000, clicks: 32400, conversions: 850,
+            likes: 12500, comments: 3400, shares: 1200, engagementRate: 5.8,
+            technicalAnalysis: lang === 'ar' ? 'استجابة عالية لرسائل الفيديو وصور الماكيت. التكلفة تنخفض تدريجياً بسبب تحسن الـ Quality Score.' : 'High response to video ads. Cost is decreasing due to improved Quality Score.',
+            futureStrategy: lang === 'ar' ? 'إعادة استهداف (Retargeting) لمن شاهد أكثر من 50% من الفيديو مع عرض حصري.' : 'Retargeting campaign for those who watched >50% of the video with an exclusive offer.'
+        });
+
+        const getEmptyData = () => ({
+            clientName: '', clientDetails: '', campaignName: '', targeting: '',
+            budget: 0, spend: 0, impressions: 0, clicks: 0, conversions: 0,
+            likes: 0, comments: 0, shares: 0, engagementRate: 0, technicalAnalysis: '', futureStrategy: ''
+        });
+
+        // --- State ---
+        let state = {
+            lang: 'en',
+            activePlatform: 'facebook',
+            isEditing: false,
+            clientsList: JSON.parse(localStorage.getItem('adAnalyticsClientsList') || '[]'),
+            activeClientId: null,
+            campaignData: {}
+        };
+
+        if(!state.activeClientId) {
+            PLATFORMS.forEach(p => { state.campaignData[p.id] = getDefaultData('en'); });
+        }
+
+        // --- Helpers & Logic ---
+        function getStats(data) {
+            const ctr = data.impressions > 0 ? ((data.clicks / data.impressions) * 100).toFixed(2) : 0;
+            const cpc = data.clicks > 0 ? (data.spend / data.clicks).toFixed(2) : 0;
+            const cpa = data.conversions > 0 ? (data.spend / data.conversions).toFixed(2) : 0;
+            const budgetUsedPct = data.budget > 0 ? Math.min(((data.spend / data.budget) * 100).toFixed(0), 100) : 0;
+            return { ctr, cpc, cpa, budgetUsedPct };
+        }
+
+        // --- Animations ---
+        // 1. Toast Notification System
+        window.showToast = function(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i data-lucide="check-circle" class="text-orange-500 w-5 h-5"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideUpFade 0.4s ease-in reverse forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        };
+
+        // 2. Number Counter Animation
+        function animateNumbers() {
+            const counters = document.querySelectorAll('.animate-number');
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-value');
+                const duration = 1500; // 1.5 seconds
+                const start = 0;
+                const increment = target / (duration / 16); // 60fps
+                
+                let current = start;
+                const isFloat = counter.getAttribute('data-float') === 'true';
+
+                const updateCounter = () => {
+                    current += increment;
+                    if (current < target) {
+                        counter.innerText = isFloat ? current.toFixed(2) : Math.floor(current).toLocaleString();
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.innerText = isFloat ? target.toFixed(2) : target.toLocaleString();
+                    }
+                };
+                updateCounter();
+            });
+        }
+
+        // 3. SVG Animate Progress Ring
+        function animateProgressRings() {
+            const rings = document.querySelectorAll('.progress-ring-circle');
+            rings.forEach(ring => {
+                const targetOffset = ring.getAttribute('data-target-offset');
+                // Start empty
+                const circumference = ring.getAttribute('stroke-dasharray').split(' ')[0];
+                ring.style.strokeDashoffset = circumference;
+                
+                // Animate to target
+                setTimeout(() => {
+                    ring.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    ring.style.strokeDashoffset = targetOffset;
+                }, 100);
+            });
+        }
+
+        function generateBarChartHTML(dataList) {
+            const maxVal = Math.max(...dataList.map(d => Number(d.value) || 0), 1);
+            let html = `<div class="flex items-end justify-between h-48 w-full px-2 gap-4">`;
+            dataList.forEach((item, index) => {
+                const heightPct = ((Number(item.value)||0) / maxVal) * 100;
+                const delay = index * 0.15; // Staggered animation
+                html += `
+                <div class="flex flex-col items-center flex-1 group">
+                    <div class="w-full relative flex justify-center items-end h-full">
+                        <div class="opacity-0 group-hover:opacity-100 absolute -top-10 bg-black/90 backdrop-blur-md border border-white/20 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-all duration-200 whitespace-nowrap z-10 pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0">
+                            ${(Number(item.value)||0).toLocaleString()}
+                        </div>
+                        <div class="w-full max-w-[48px] rounded-t-lg shadow-[0_0_20px_rgba(0,0,0,0.3)] chart-bar animate-grow-up ${item.color}" style="height: ${heightPct}%; animation-delay: ${delay}s"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 mt-3 truncate w-full text-center font-medium">${item.label}</span>
+                </div>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        function generateProgressRingHTML(radius, stroke, progress, colorClass) {
+            const normalizedRadius = radius - stroke * 2;
+            const circumference = normalizedRadius * 2 * Math.PI;
+            const strokeDashoffset = circumference - (progress / 100) * circumference;
+            return `
+            <svg height="${radius * 2}" width="${radius * 2}" style="transform: rotate(-90deg); transform-origin: 50% 50%;">
+                <circle stroke="rgba(255,255,255,0.05)" fill="transparent" stroke-width="${stroke}" r="${normalizedRadius}" cx="${radius}" cy="${radius}" />
+                <circle class="progress-ring-circle ${colorClass}" stroke="currentColor" fill="transparent" stroke-width="${stroke}" stroke-dasharray="${circumference} ${circumference}" data-target-offset="${strokeDashoffset}" stroke-linecap="round" r="${normalizedRadius}" cx="${radius}" cy="${radius}" />
+            </svg>`;
+        }
+
+        // --- UI Actions ---
+        window.setPlatform = function(platformId) {
+            state.activePlatform = platformId;
+            renderApp();
+        };
+
+        window.toggleLanguage = function() {
+            state.lang = state.lang === 'ar' ? 'en' : 'ar';
+            document.getElementById('app-container').dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+            renderApp();
+        };
+
+        window.toggleEditMode = function() {
+            state.isEditing = !state.isEditing;
+            renderMainArea();
+            renderHeader();
+            lucide.createIcons();
+        };
+
+        window.handleClientSwitch = function(val) {
+            if (val === 'new') {
+                state.activeClientId = null;
+                PLATFORMS.forEach(p => { state.campaignData[p.id] = getEmptyData(); });
+                state.isEditing = true;
+            } else {
+                state.activeClientId = val;
+                const client = state.clientsList.find(c => c.id === val);
+                if (client) {
+                    state.campaignData = JSON.parse(JSON.stringify(client.data));
+                    state.isEditing = false;
+                }
+            }
+            renderApp();
+        };
+
+        window.updateField = function(name, value, type) {
+            let val = type === 'number' ? Number(value) : value;
+            if(!state.campaignData[state.activePlatform]) state.campaignData[state.activePlatform] = getEmptyData();
+            state.campaignData[state.activePlatform][name] = val;
+        };
+
+        window.saveData = function() {
+            const t = TRANSLATIONS[state.lang];
+            let currentData = state.campaignData[state.activePlatform] || getEmptyData();
+            let clientName = currentData.clientName;
+            
+            if (!clientName) {
+                const platformWithData = Object.values(state.campaignData).find(d => d.clientName);
+                clientName = platformWithData ? platformWithData.clientName : t.unspecified;
+            }
+
+            let updatedList = [...state.clientsList];
+            let currentId = state.activeClientId;
+
+            if (currentId) {
+                const index = updatedList.findIndex(c => c.id === currentId);
+                if (index > -1) updatedList[index] = { ...updatedList[index], name: clientName, data: state.campaignData };
+            } else {
+                currentId = Date.now().toString();
+                updatedList.push({ id: currentId, name: clientName, data: state.campaignData });
+                state.activeClientId = currentId;
+            }
+
+            state.clientsList = updatedList;
+            localStorage.setItem('adAnalyticsClientsList', JSON.stringify(updatedList));
+            
+            state.isEditing = false;
+            renderApp();
+            showToast(t.savedSuccess);
+        };
+
+        window.printReport = function() {
+            state.isEditing = false;
+            renderMainArea();
+            renderHeader();
+            lucide.createIcons();
+            
+            // إجبار الأرقام والدوائر على الاكتمال فوراً للطباعة
+            document.querySelectorAll('.animate-number').forEach(el => {
+                const val = el.getAttribute('data-value');
+                const isFloat = el.getAttribute('data-float') === 'true';
+                el.innerText = isFloat ? Number(val).toFixed(2) : Number(val).toLocaleString();
+            });
+            
+            document.querySelectorAll('.progress-ring-circle').forEach(ring => {
+                ring.style.transition = 'none';
+                ring.style.strokeDashoffset = ring.getAttribute('data-target-offset');
+            });
+
+            document.querySelectorAll('.chart-bar').forEach(bar => {
+                bar.style.animation = 'none';
+                bar.style.opacity = '1';
+                bar.style.transform = 'scaleY(1)';
+            });
+            
+            const t = TRANSLATIONS[state.lang];
+            showToast(state.lang === 'ar' ? "تجهيز التقرير للطباعة..." : "Preparing report for print...");
+
+            // إعطاء المتصفح نصف ثانية لتطبيق التعديلات على الـ DOM ثم استدعاء الطباعة الطبيعية
+            setTimeout(() => {
+                window.print();
+            }, 600);
+        };
+
+        // --- Renderers ---
+        function renderSidebar() {
+            const t = TRANSLATIONS[state.lang];
+            const isRTL = state.lang === 'ar';
+            
+            let platformsHTML = PLATFORMS.map(platform => {
+                const isActive = state.activePlatform === platform.id;
+                const activeClasses = `bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_20px_rgba(234,88,12,0.15)] font-semibold scale-[1.02]`;
+                const inactiveClasses = `text-gray-400 hover:bg-white/5 hover:text-white border border-transparent`;
+                const iconColor = isActive ? 'text-orange-400' : 'text-gray-500';
+                
+                return `
+                <li>
+                    <button onclick="setPlatform('${platform.id}')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive ? activeClasses : inactiveClasses}">
+                        <i data-lucide="${platform.icon}" class="${iconColor} w-5 h-5"></i>
+                        <span>${platform.name[state.lang]}</span>
+                    </button>
+                </li>`;
+            }).join('');
+
+            document.getElementById('sidebar').className = `no-print w-64 bg-black/40 backdrop-blur-3xl ${isRTL ? 'border-l' : 'border-r'} border-white/5 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.8)] transition-all`;
+
+            document.getElementById('sidebar').innerHTML = `
+                <div class="p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+                    <h1 class="text-xl font-extrabold text-white flex items-center gap-2">
+                        <div class="p-1.5 bg-orange-500 rounded-lg shadow-[0_0_15px_rgba(234,88,12,0.5)]"><i data-lucide="bar-chart-2" class="text-white w-5 h-5"></i></div>
+                        <span>${t.appTitle}</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 mt-2 font-medium">${t.appDesc}</p>
+                </div>
+                <div class="p-4 flex-1 overflow-y-auto">
+                    <p class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest pl-2">${t.platformsTitle}</p>
+                    <ul class="space-y-1">
+                        ${platformsHTML}
+                    </ul>
+                </div>
+                <div class="p-5 border-t border-white/5 bg-black/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold shrink-0 shadow-lg">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white">${t.accountManager}</p>
+                            <p class="text-xs text-gray-400">${t.agency}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHeader() {
+            const t = TRANSLATIONS[state.lang];
+            const activePlatformDetails = PLATFORMS.find(p => p.id === state.activePlatform);
+            const isRTL = state.lang === 'ar';
+            
+            let clientOptions = `<option value="new" class="text-orange-400 font-bold bg-gray-900">${t.newClient}</option>`;
+            clientOptions += `<optgroup label="${t.selectClient}" class="bg-gray-900 text-white">`;
+            state.clientsList.forEach(c => {
+                const selected = c.id === state.activeClientId ? 'selected' : '';
+                clientOptions += `<option value="${c.id}" ${selected}>${c.name || t.unspecified}</option>`;
+            });
+            clientOptions += `</optgroup>`;
+
+            const editBtnHTML = `
+                <button onclick="toggleEditMode()" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all text-sm font-medium backdrop-blur-sm shadow-sm">
+                    <i data-lucide="${state.isEditing ? 'layout-dashboard' : 'settings-2'}" class="w-4 h-4 text-gray-300"></i>
+                    <span class="hidden sm:inline">${state.isEditing ? t.viewMode : t.editMode}</span>
+                </button>`;
+
+            document.getElementById('header').innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-lg" style="color: ${activePlatformDetails.color}">
+                        <i data-lucide="${activePlatformDetails.icon}" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">${t.reportFor} <span style="color: ${activePlatformDetails.color}">${activePlatformDetails.name[state.lang]}</span></h2>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">${t.clientLabel}</span>
+                            <select onchange="handleClientSwitch(this.value)" class="text-sm font-bold bg-transparent border-b border-white/20 text-white px-1 py-0.5 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none transition-colors hover:border-white/50">
+                                ${clientOptions}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 md:gap-3 flex-wrap">
+                    <!-- Date Range Badge (Visual) -->
+                    <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-black/40 border border-white/5 text-gray-300 rounded-lg text-sm font-medium">
+                        <i data-lucide="calendar" class="w-4 h-4 text-orange-500"></i> ${t.dateRange}
+                    </div>
+
+                    <button onclick="toggleLanguage()" class="flex items-center justify-center w-10 h-10 bg-white/5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/10 transition-all backdrop-blur-sm" title="Toggle Language">
+                        <i data-lucide="languages" class="w-5 h-5"></i>
+                    </button>
+                    
+                    ${editBtnHTML}
+
+                    <div class="w-px h-6 bg-white/10 mx-1 hidden sm:block"></div>
+                    
+                    <button onclick="saveData()" class="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-400 shadow-[0_4px_15px_rgba(234,88,12,0.4)] border border-orange-400/50 transition-all transform hover:-translate-y-0.5 text-sm font-bold">
+                        <i data-lucide="save" class="w-4 h-4"></i> <span class="hidden sm:inline">${t.save}</span>
+                    </button>
+                    
+                    <button class="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 text-white border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm font-medium backdrop-blur-sm">
+                        <i data-lucide="download-cloud" class="w-4 h-4 text-gray-400"></i> <span class="hidden sm:inline">${t.exportCSV}</span>
+                    </button>
+
+                    <button onclick="printReport()" class="flex items-center gap-2 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 shadow-sm transition-all text-sm font-medium backdrop-blur-sm">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderMainArea() {
+            const t = TRANSLATIONS[state.lang];
+            const isRTL = state.lang === 'ar';
+            const currentData = state.campaignData[state.activePlatform] || getEmptyData();
+            const activePlatformDetails = PLATFORMS.find(p => p.id === state.activePlatform);
+            const stats = getStats(currentData);
+            
+            const contentDiv = document.getElementById('main-content');
+            
+            // Re-trigger fade-in animation
+            contentDiv.classList.remove('animate-slide-up-fade');
+            void contentDiv.offsetWidth; 
+            contentDiv.classList.add('animate-slide-up-fade');
+
+            if (state.isEditing) {
+                // --- Edit Mode ---
+                contentDiv.innerHTML = `
+                    <div class="glass-card p-6 md:p-8">
+                        <h3 class="text-xl font-bold text-white border-b border-white/10 pb-4 mb-6 flex items-center gap-2">
+                            <i data-lucide="settings" class="text-orange-500 w-6 h-6"></i> ${t.updateDataFor} ${activePlatformDetails.name[state.lang]}
+                        </h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="space-y-6">
+                                <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="briefcase" class="w-4 h-4"></i> ${t.clientInfo}</h4>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.clientName}</label>
+                                    <input type="text" name="clientName" value="${currentData.clientName || ''}" oninput="updateField(this.name, this.value, 'text')" class="w-full px-4 py-3 glass-input text-lg" placeholder="${t.clientNamePH}">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.clientDetails}</label>
+                                    <textarea name="clientDetails" oninput="updateField(this.name, this.value, 'text')" rows="2" class="w-full px-4 py-3 resize-none glass-input" placeholder="${t.clientDetailsPH}">${currentData.clientDetails || ''}</textarea>
+                                </div>
+                                <div class="pt-6 border-t border-white/10">
+                                    <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4 flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="target" class="w-4 h-4"></i> ${t.campaignSetup}</h4>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.campaignName}</label>
+                                        <input type="text" name="campaignName" value="${currentData.campaignName || ''}" oninput="updateField(this.name, this.value, 'text')" class="w-full px-4 py-3 glass-input text-lg">
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="block text-sm font-medium text-gray-400 mb-1.5">${t.targeting}</label>
+                                        <textarea name="targeting" oninput="updateField(this.name, this.value, 'text')" rows="3" class="w-full px-4 py-3 resize-none glass-input">${currentData.targeting || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6 bg-black/30 p-6 rounded-2xl border border-white/5 shadow-inner">
+                                <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="trending-up" class="w-4 h-4"></i> ${t.resultsNumbers}</h4>
+                                <div class="grid grid-cols-2 gap-5">
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.budget}</label><div class="relative"><i data-lucide="dollar-sign" class="absolute ${isRTL?'right':'left'}-3 top-3 w-4 h-4 text-gray-500"></i><input type="number" name="budget" value="${currentData.budget || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 ${isRTL?'pr-9':'pl-9'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg text-green-400"></div></div>
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.spend}</label><div class="relative"><i data-lucide="dollar-sign" class="absolute ${isRTL?'right':'left'}-3 top-3 w-4 h-4 text-gray-500"></i><input type="number" name="spend" value="${currentData.spend || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 ${isRTL?'pr-9':'pl-9'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg text-orange-400"></div></div>
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.impressions}</label><input type="number" name="impressions" value="${currentData.impressions || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg"></div>
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.clicks}</label><input type="number" name="clicks" value="${currentData.clicks || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-lg"></div>
+                                    <div class="col-span-2"><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.conversions}</label><input type="number" name="conversions" value="${currentData.conversions || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-3 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input text-xl text-purple-400"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6 bg-black/30 p-6 rounded-2xl border border-white/5 lg:col-span-2 shadow-inner">
+                                <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2 bg-white/5 p-2 rounded-md w-fit"><i data-lucide="users" class="w-4 h-4"></i> ${t.engagementTab}</h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.likes}</label><input type="number" name="likes" value="${currentData.likes || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"></div>
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.comments}</label><input type="number" name="comments" value="${currentData.comments || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"></div>
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.shares}</label><input type="number" name="shares" value="${currentData.shares || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"></div>
+                                    <div><label class="block text-sm font-medium text-gray-400 mb-1.5">${t.engagementRate}</label><div class="relative"><input type="number" step="0.1" name="engagementRate" value="${currentData.engagementRate || ''}" oninput="updateField(this.name, this.value, 'number')" class="w-full px-4 py-2 ${isRTL?'pl-8':'pr-8'} font-mono ${isRTL ? 'text-right' : 'text-left'} glass-input"><span class="absolute ${isRTL?'left-3':'right-3'} top-2 text-gray-500">%</span></div></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6 lg:col-span-2 pt-4 border-t border-white/10">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3"><i data-lucide="activity" class="text-blue-400 w-4 h-4"></i> ${t.techAnalysisTab}</h4>
+                                        <textarea name="technicalAnalysis" oninput="updateField(this.name, this.value, 'text')" rows="4" class="w-full px-4 py-3 resize-none glass-input leading-relaxed" placeholder="${t.techAnalysisPH}">${currentData.technicalAnalysis || ''}</textarea>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3"><i data-lucide="lightbulb" class="text-yellow-400 w-4 h-4"></i> ${t.futureStrategyTab}</h4>
+                                        <textarea name="futureStrategy" oninput="updateField(this.name, this.value, 'text')" rows="4" class="w-full px-4 py-3 resize-none glass-input leading-relaxed" placeholder="${t.futureStrategyPH}">${currentData.futureStrategy || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // --- Dashboard View ---
+                const barChartData = [
+                    { label: t.impressionsLabel, value: currentData.impressions, color: 'bg-gradient-to-t from-gray-500 to-gray-300' },
+                    { label: t.clicksLabel, value: currentData.clicks, color: 'bg-gradient-to-t from-orange-600 to-orange-400' },
+                    { label: t.conversionsLabel, value: currentData.conversions, color: 'bg-gradient-to-t from-green-600 to-green-400' }
+                ];
+
+                contentDiv.innerHTML = `
+                    <!-- Header Card -->
+                    <div class="glass-card p-6 md:p-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                        <div class="flex flex-col md:flex-row justify-between items-start gap-6 relative z-10">
+                            <div class="flex-1">
+                                <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${isRTL ? 'from-white to-gray-400' : 'from-white to-gray-400'} mb-3 tracking-tight">${currentData.clientName || t.unspecified}</h1>
+                                <p class="text-gray-400 max-w-2xl leading-relaxed text-lg">${currentData.clientDetails || '-'}</p>
+                            </div>
+                            <div class="flex flex-col items-center justify-center p-5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl min-w-[140px]">
+                                <i data-lucide="${activePlatformDetails.icon}" style="color: ${activePlatformDetails.color}" class="w-10 h-10 mb-2 drop-shadow-lg"></i>
+                                <span class="text-sm font-bold text-white">${activePlatformDetails.name[state.lang]}</span>
+                            </div>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                            <div><span class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-2">${t.campaignLabel}</span><p class="text-xl font-bold text-white">${currentData.campaignName || '-'}</p></div>
+                            <div><span class="text-xs font-bold text-orange-500 uppercase tracking-widest block mb-2">${t.targetingLabel}</span><p class="text-sm text-gray-300 bg-black/30 p-3 rounded-lg border border-white/5 leading-relaxed">${currentData.targeting || '-'}</p></div>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-extrabold text-white mt-4 mb-2 flex items-center gap-3"><i data-lucide="bar-chart" class="text-orange-500 w-7 h-7"></i> ${t.overviewTab}</h2>
+                    
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div class="glass-card p-6 flex items-center justify-between group">
+                            <div>
+                                <p class="text-sm text-gray-400 font-medium mb-1">${t.spendVsBudget}</p>
+                                <h3 class="text-3xl font-bold text-white font-mono flex items-baseline gap-1">$<span class="animate-number" data-value="${Number(currentData.spend)||0}">0</span></h3>
+                                <p class="text-xs text-gray-500 mt-2">${t.outOf} $<span class="animate-number" data-value="${Number(currentData.budget)||0}">0</span></p>
+                            </div>
+                            <div class="relative">
+                                ${generateProgressRingHTML(36, 6, stats.budgetUsedPct, 'text-orange-500')}
+                                <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-orange-400"><span class="animate-number" data-value="${stats.budgetUsedPct}">0</span>%</span>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6 flex flex-col justify-center">
+                            <div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-white/5 text-gray-300 rounded-xl border border-white/10"><i data-lucide="eye" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-medium">${t.impressionsLabel}</p></div>
+                            <h3 class="text-3xl font-bold text-white font-mono"><span class="animate-number" data-value="${Number(currentData.impressions)||0}">0</span></h3>
+                        </div>
+                        <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden">
+                            <div class="flex items-center gap-3 mb-3 relative z-10"><div class="p-2.5 bg-orange-500/10 text-orange-400 rounded-xl border border-orange-500/20"><i data-lucide="mouse-pointer-click" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-medium">${t.totalClicks}</p></div>
+                            <h3 class="text-3xl font-bold text-white font-mono relative z-10"><span class="animate-number" data-value="${Number(currentData.clicks)||0}">0</span></h3>
+                            <p class="text-xs font-bold text-orange-400 mt-2 bg-orange-500/10 border border-orange-500/20 inline-block px-2.5 py-1 rounded-md w-fit relative z-10">CTR: <span class="animate-number" data-float="true" data-value="${stats.ctr}">0.00</span>%</p>
+                        </div>
+                        <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-green-500/5 to-transparent border-green-500/20">
+                            <div class="absolute ${isRTL ? '-left-6' : '-right-6'} -bottom-6 opacity-10 pointer-events-none transform rotate-12"><i data-lucide="target" class="text-green-400 w-32 h-32"></i></div>
+                            <div class="flex items-center gap-3 mb-3 relative z-10"><div class="p-2.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl shadow-[0_0_15px_rgba(74,222,128,0.2)]"><i data-lucide="target" class="w-5 h-5"></i></div><p class="text-sm text-green-400/80 font-medium">${t.conversionsLabel}</p></div>
+                            <h3 class="text-4xl font-black text-white font-mono relative z-10 drop-shadow-md"><span class="animate-number" data-value="${Number(currentData.conversions)||0}">0</span></h3>
+                        </div>
+                    </div>
+
+                    <!-- Charts & Finance -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+                        <div class="lg:col-span-2 glass-card p-8">
+                            <h3 class="text-lg font-bold text-white mb-8 flex items-center gap-2"><i data-lucide="filter" class="text-orange-500 w-5 h-5"></i> ${t.funnel}</h3>
+                            <div class="pt-6 border-b border-white/5 pb-2">${generateBarChartHTML(barChartData)}</div>
+                        </div>
+                        <div class="glass-card p-8 border-orange-500/30 shadow-[0_0_40px_rgba(234,88,12,0.08)] bg-gradient-to-b from-transparent to-orange-900/10">
+                            <h3 class="text-lg font-bold text-white mb-8 flex items-center gap-2 border-b border-white/10 pb-4"><i data-lucide="dollar-sign" class="text-orange-500 w-5 h-5 bg-orange-500/20 rounded-full p-1"></i> ${t.costAnalysis}</h3>
+                            <div class="space-y-8">
+                                <div><p class="text-gray-400 text-sm mb-2 font-medium">${t.cpc}</p><div class="flex items-end gap-2"><span class="text-4xl font-black font-mono text-white tracking-tighter">$<span class="animate-number" data-float="true" data-value="${stats.cpc}">0.00</span></span><span class="text-xs font-bold text-orange-400 mb-1.5 px-2 py-0.5 bg-orange-500/10 rounded">${t.goodAvg}</span></div></div>
+                                <div><p class="text-gray-400 text-sm mb-2 font-medium">${t.cpa}</p><div class="flex items-end gap-2"><span class="text-4xl font-black font-mono text-white tracking-tighter">$<span class="animate-number" data-float="true" data-value="${stats.cpa}">0.00</span></span><span class="text-xs text-gray-500 mb-1.5">${t.perConversion}</span></div></div>
+                                <div class="pt-6 mt-4 border-t border-white/10">
+                                    <div class="flex justify-between items-center mb-3"><span class="text-sm font-medium text-gray-400">${t.remainingBudget}</span><span class="text-base font-bold font-mono text-white">$<span class="animate-number" data-value="${(Number(currentData.budget)||0) - (Number(currentData.spend)||0)}">0</span></span></div>
+                                    <div class="w-full bg-black/50 rounded-full h-2.5 flex ${isRTL ? 'justify-end' : 'justify-start'} overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-orange-600 to-orange-400 h-2.5 rounded-full shadow-[0_0_12px_rgba(234,88,12,0.8)]" style="width: ${100 - stats.budgetUsedPct}%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Engagement Section -->
+                    <div class="mt-10 mb-8 print:break-inside-avoid">
+                        <h2 class="text-2xl font-extrabold text-white mb-6 flex items-center gap-3"><i data-lucide="users-2" class="text-orange-500 w-7 h-7"></i> ${t.engagementTab}</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-xl"><i data-lucide="heart" class="w-5 h-5 fill-current"></i></div><p class="text-sm text-gray-400 font-bold">${t.likes}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.likes)||0}">0</span></h3></div>
+                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl"><i data-lucide="message-square" class="w-5 h-5 fill-current"></i></div><p class="text-sm text-gray-400 font-bold">${t.comments}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.comments)||0}">0</span></h3></div>
+                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-xl"><i data-lucide="share-2" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-bold">${t.shares}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-value="${Number(currentData.shares)||0}">0</span></h3></div>
+                            <div class="glass-card p-6 hover:bg-white/5"><div class="flex items-center gap-3 mb-3"><div class="p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl"><i data-lucide="activity" class="w-5 h-5"></i></div><p class="text-sm text-gray-400 font-bold">${t.engagementRate}</p></div><h3 class="text-2xl font-black text-white font-mono"><span class="animate-number" data-float="true" data-value="${Number(currentData.engagementRate)||0}">0</span>%</h3></div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis & Strategy -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 print:break-inside-avoid">
+                        <div class="glass-card p-8 border-t-4 border-t-blue-500/50 hover:border-t-blue-500 transition-colors"><h2 class="text-xl font-bold text-white mb-5 flex items-center gap-3"><i data-lucide="line-chart" class="text-blue-400 w-6 h-6"></i> ${t.techAnalysisTab}</h2><div class="bg-black/30 p-5 rounded-xl border border-white/5 min-h-[140px] shadow-inner"><p class="text-gray-300 leading-relaxed whitespace-pre-wrap text-base">${currentData.technicalAnalysis || '-'}</p></div></div>
+                        <div class="glass-card p-8 border-t-4 border-t-yellow-500/50 hover:border-t-yellow-500 transition-colors bg-gradient-to-b from-yellow-500/5 to-transparent"><h2 class="text-xl font-bold text-white mb-5 flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400 w-6 h-6 fill-current"></i> ${t.futureStrategyTab}</h2><div class="bg-black/30 p-5 rounded-xl border border-white/5 min-h-[140px] shadow-inner"><p class="text-gray-300 leading-relaxed whitespace-pre-wrap text-base">${currentData.futureStrategy || '-'}</p></div></div>
+                    </div>
+                `;
+
+                // Trigger animations after injecting HTML
+                setTimeout(() => {
+                    animateNumbers();
+                    animateProgressRings();
+                }, 50);
+            }
+        }
+
+        function renderApp() {
+            renderSidebar();
+            renderHeader();
+            renderMainArea();
+            lucide.createIcons();
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('app-container').dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+            renderApp();
+        });
+    </script>
+</body>
+</html>
